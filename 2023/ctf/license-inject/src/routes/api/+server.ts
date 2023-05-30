@@ -8,6 +8,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import mime from 'mime-types';
 import sqlite from 'sqlite3';
+import randomName from 'random-name';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -66,10 +67,11 @@ export const POST: RequestHandler = async ({ request }) => {
 						// populate db with plates
 						const dbSize = 1000 * 1000;
 						const plates = Array(dbSize)
-							.fill({ name: , number: 0, fine: '' })
+							.fill({ name: '', number: 0, fine: '' })
+							// @ts-ignore
+							.map(() => ({ name: randomName(), number: 0, fine: '' }));
 					}
 				);
-				
 			});
 		} catch (e) {
 			return error(40, 'Invalid license plate');
