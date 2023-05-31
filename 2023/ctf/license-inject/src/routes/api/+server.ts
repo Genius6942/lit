@@ -45,7 +45,10 @@ export const POST: RequestHandler = async ({ request }) => {
 	console.log('wrote file yay!!');
 	try {
 		const worker = await createWorker({
-			logger: (m) => console.log((m.progress * 100).toString() + '%')
+			logger: (m) => console.log((m.progress * 100).toString() + '%'),
+			// workerPath: path.join(process.cwd(), 'static', 'tesseract/worker.min.js'),
+			// langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+			// corePath: path.join(process.cwd(), 'static', 'tesseract')
 		});
 
 		await worker.loadLanguage('eng');
