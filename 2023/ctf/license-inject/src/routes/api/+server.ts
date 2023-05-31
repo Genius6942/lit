@@ -48,7 +48,9 @@ export const POST: RequestHandler = async ({ request }) => {
 	console.log('wrote file yay!!');
 	try {
 		let text: string;
-		if (process.env.NODE_ENV === 'development') {
+		// if (process.env.NODE_ENV === 'development') {
+		// eslint-disable-next-line no-constant-condition
+		if (true) {
 			const worker = await createWorker({
 				logger: (m) => console.log((m.progress * 100).toString() + '%'),
 				// workerPath: path.join(process.cwd(), 'static', 'tesseract/worker.min.js'),
