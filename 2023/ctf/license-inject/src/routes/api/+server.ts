@@ -10,6 +10,9 @@ import mime from 'mime-types';
 import sqlite from 'sqlite3';
 import randomName from 'random-name';
 
+// @ts-ignore
+import { getTextFromImage, isSupportedFile } from '@shelf/aws-lambda-tesseract';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const genPlate = (maxLength = 7) =>
@@ -44,20 +47,26 @@ export const POST: RequestHandler = async ({ request }) => {
 	await fs.writeFile(filePath, new Uint8Array(await file.arrayBuffer()));
 	console.log('wrote file yay!!');
 	try {
-		const worker = await createWorker({
-			logger: (m) => console.log((m.progress * 100).toString() + '%'),
-			// workerPath: path.join(process.cwd(), 'static', 'tesseract/worker.min.js'),
-			// langPath: 'https://tessdata.projectnaptha.com/4.0.0',
-			corePath: path.join(process.cwd(), 'static', 'tesseract')
-		});
+		let text: string;
+		if (process.env.NODE_ENV === 'development') {
+			const worker = await createWorker({
+				logger: (m) => console.log((m.progress * 100).toString() + '%'),
+				// workerPath: path.join(process.cwd(), 'static', 'tesseract/worker.min.js'),
+				// langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+				corePath: path.join(process.cwd(), 'static', 'tesseract/tesseract-core-simd.js')
+			});
 
-		await worker.loadLanguage('eng');
-		await worker.initialize('eng');
-		const {
-			data: { text: ogText }
-		} = await worker.recognize(filePath);
-		await worker.terminate();
-		const text = ogText.trim();
+			await worker.loadLanguage('eng');
+			await worker.initialize('eng');
+			const {
+				data: { text: ogText }
+			} = await worker.recognize(filePath);
+			await worker.terminate();
+			text = ogText.trim();
+		} else {
+			const ogText = (await getTextFromImage(filePath)) as string;
+			text = ogText.trim();
+		}
 		try {
 			fs.unlink(filePath);
 		} catch (e) {
@@ -82,7 +91,7 @@ export const POST: RequestHandler = async ({ request }) => {
 						if (names.includes(name)) return genName();
 						names.push(name);
 						return name;
-					}
+					};
 				})();
 				const oops = (err: Error) => {
 					// clean up db
